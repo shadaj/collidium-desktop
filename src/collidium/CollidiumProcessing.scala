@@ -25,8 +25,13 @@ class Collidium extends PApplet {
   var cannonY = 1
   var cannonX = 1
   var slope: Float = 0
-  var walls = List[Line](new Line(new Point(0, 0), new Point(500, 0)))
+  var walls = List[Line](new Line(new Point(0, 0), new Point(500, 0)), new Line(new Point(0, 500), new Point(500, 500)))
   val circle = new Circle(new Point(1, 1), 10, 10)
+  val magnitude = 1
+  var xRight = true
+  def theta = Math.atan(slope)
+  def deltaX = Math.cos(theta) * magnitude
+  def deltaY = Math.sin(theta) * magnitude
 
   override def setup() = {
     frameRate(75)
@@ -47,8 +52,12 @@ class Collidium extends PApplet {
         }
       }
       circle.draw(this)
-      circle.start.y += slope
-      circle.start.x += 1
+      xRight match {
+        case true => circle.start.y += deltaY.toFloat
+        			 circle.start.x += deltaX.toFloat
+        case false => circle.start.y -= deltaY.toFloat
+        			  circle.start.x -= deltaX.toFloat
+      }
     } else {
       ellipse(mouseX, mouseY, 5, 5)
       if (cannonDecided) {
@@ -61,6 +70,9 @@ class Collidium extends PApplet {
   override def mousePressed {
     if (cannonDecided) {
       slope = (mouseY - cannonY).toFloat / (mouseX - cannonX)
+      if (mouseX < cannonX) {
+        xRight = false
+      }
       started = true
     } else {
       cannonX = mouseX
