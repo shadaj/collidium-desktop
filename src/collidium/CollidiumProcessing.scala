@@ -74,11 +74,12 @@ class Collidium extends PApplet {
   }
   
   override def mouseReleased() {
-    circle.theta = slingOption.get.theta
-    circle.magnitude = slingOption.get.magnitude / 40
-	circle.start.y = mouseY
-	circle.start.x = mouseX
-
+    if (pullingRubber) {
+	    circle.theta = slingOption.get.theta
+	    circle.magnitude = slingOption.get.magnitude / 40
+		circle.start.y = mouseY
+		circle.start.x = mouseX
+    }
     pullingRubber = false
     started = true
   }
