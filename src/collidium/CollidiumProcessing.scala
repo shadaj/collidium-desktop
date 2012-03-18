@@ -3,6 +3,7 @@ package collidium
 import processing.core._
 import java.awt.event._
 import javax.swing.JFrame
+import Angle._
 
 object CollidiumApp extends App {
   val game = new Collidium
@@ -19,114 +20,67 @@ class Collidium extends PApplet {
   val black = 0
   val white = 255
   val screenSize = 500
-
+  val margin = 50
   var started = false
-  var cannonDecided = false
-  var cannonY = 1
-  var cannonX = 1
-  var slope: Float = 0
-  var walls = List[Line](new Line(new Point(0, 0), new Point(500, 0)), new Line(new Point(0, 500), new Point(500, 500)))
+  var pullingRubber = false
+  var slingOption: Option[Sling] = None
+  var walls = List(new Line(new Point(screenSize -margin, margin), new Point(margin, margin)),
+		  	 	   new Line(new Point(screenSize -margin, screenSize - margin), new Point(margin, screenSize - margin)),
+		   	 	   new Line(new Point(screenSize -margin, margin), new Point(screenSize - margin, screenSize - margin)),
+		  		   new Line(new Point(margin, margin), new Point(margin, screenSize - margin)))
   val circle = new Circle(new Point(1, 1), 10, 10)
-  val magnitude = 1
-  var xRight = true
-  def theta = Math.atan(slope)
-  def deltaX = Math.cos(theta) * magnitude
-  def deltaY = Math.sin(theta) * magnitude
-
+  
   override def setup() = {
     frameRate(75)
     size(screenSize, screenSize)
-    background(0)
-
   }
 
   override def draw() {
     background(0)
+    strokeWeight(0.5F)
     walls.foreach(_.draw(this))
     if (started) {
       walls.foreach { wall =>
-        val collision = wall.colliding(circle, slope)
-        collision match {
-          case Some(newSlope) => slope = newSlope
-          case None =>
-        }
+        wall.colliding(circle)
       }
-      circle.draw(this)
-      xRight match {
-        case true => circle.start.y += deltaY.toFloat
-        			 circle.start.x += deltaX.toFloat
-        case false => circle.start.y -= deltaY.toFloat
-        			  circle.start.x -= deltaX.toFloat
-      }
+      circle.next
     } else {
-      ellipse(mouseX, mouseY, 5, 5)
-      if (cannonDecided) {
-        strokeWeight(5)
-        stroke(255)
-        line(cannonX, cannonY, mouseX, mouseY)
+      circle.start.x = mouseX
+      circle.start.y = mouseY
+      slingOption match {
+        case Some(sling) => sling.draw(this)
+        case None =>
       }
     }
+    circle.draw(this)
   }
-  override def mousePressed {
-    if (cannonDecided) {
-      slope = (mouseY - cannonY).toFloat / (mouseX - cannonX)
-      if (mouseX < cannonX) {
-        xRight = false
-      }
-      started = true
-    } else {
-      cannonX = mouseX
-      cannonY = mouseY
-      circle.start.y = cannonY
-      circle.start.x = cannonX
-      cannonDecided = true
+
+  override def mousePressed() {
+    if (!started) {
+      slingOption = Option(new Sling(new Point(mouseX, mouseY), new Point(mouseX, mouseY)))
+      circle.start.x = mouseX
+      circle.start.y = mouseY
+      pullingRubber = true
     }
   }
+  
+  override def mouseDragged() {
+    if (pullingRubber) {
+        circle.start.x = mouseX
+        circle.start.y = mouseY
 
-}
-
-trait Sprite {
-  def draw(graphics: PApplet): Unit
-  def colliding(sprite: Sprite, curSlope: Float): Option[Float]
-  def bounds: (Point, Point)
-}
-
-class Circle(var start: Point, val height: Int, val width: Int) extends Sprite {
-  def draw(graphics: PApplet): Unit = {
-    graphics.ellipse(start.x, start.y, width, height)
-  }
-  def colliding(sprite: Sprite, curSlope: Float): Option[Float] = {
-    None
-  }
-  def bounds: (Point, Point) = {
-    (start, new Point(start.x + width, start.y + height))
-  }
-}
-
-class Line(start: Point, end: Point) extends Sprite {
-  val m = (end.y - start.y) / (end.x - start.x)
-  val c = start.y - (start.x * m)
-  def y = (x: Int) => m * x + c // mx + c
-
-  def draw(papplet: PApplet) {
-    papplet.line(start.x, start.y, end.x, end.y)
-  }
-
-  def colliding(sprite: Sprite, curSlope: Float) = {
-    val myY = start.y
-    val spriteYMax = sprite.bounds._1.y max sprite.bounds._2.y
-    val spriteYMin = sprite.bounds._1.y min sprite.bounds._2.y
-    //println(spriteYMin + " " + myY + " " + spriteYMax)
-    if (myY >= spriteYMin && myY <= spriteYMax) {
-      Some(m - curSlope)
-    } else {
-      None
+    	slingOption = Option(new Sling(slingOption.get.start, new Point(mouseX, mouseY)))
     }
   }
+  
+  override def mouseReleased() {
+    circle.theta = slingOption.get.theta
+    circle.magnitude = slingOption.get.magnitude / 40
+	circle.start.y = mouseY
+	circle.start.x = mouseX
 
-  def height = 0
-  def width = 0
-  def bounds = (start, end)
+    pullingRubber = false
+    started = true
+  }
 }
 
-class Point(var x: Float, var y: Float)
