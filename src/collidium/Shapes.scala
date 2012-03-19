@@ -2,64 +2,118 @@ package collidium
 
 import processing.core.PApplet
 import Angle._
+import processing.core.PConstants
+import math._
 
 trait Sprite {
   def draw(graphics: PApplet): Unit
   def colliding(sprite: Sprite): Unit
-  def bounds: (Point, Point)
+  //  def bounds: (Point, Point)
   var theta: Double = 0
+  var location: Point
+  def next: Point
+  def move(to: Point) {
+    location = to
+  }
+  def update {
+    move(next)
+  }
 }
 
-class Circle(var start: Point, val height: Int, val width: Int) extends Sprite {
-  def next {
+class Circle(var location: Point, val height: Int, val width: Int) extends Sprite {
+  def next = {
     //println(deltaX + " " + deltaY)
-    start = new Point((start.x + deltaX), (start.y + deltaY))
+    new Point((location.x + deltaX), (location.y + deltaY))
   }
+
   def draw(graphics: PApplet): Unit = {
-    graphics.ellipse(start.x.toFloat, start.y.toFloat, width, height)
+    graphics.ellipseMode(PConstants.CENTER)
+    graphics.ellipse(location.x.toFloat, location.y.toFloat, width, height)
   }
   def colliding(sprite: Sprite) {
   }
-  def bounds: (Point, Point) = {
-    (start, new Point(start.x + width, start.y + height))
-  }
-  
-  def deltaX = Math.cos(theta) * magnitude
-  def deltaY = Math.sin(theta) * magnitude
+  //  def bounds: (Point, Point) = {
+  //    (location, new Point(location.x + width, location.y + height))
+  //  }
+
+  def deltaX = cos(theta) * magnitude
+  def deltaY = sin(theta) * magnitude
   var magnitude = 0D
 }
 
-class Line(start: Point, end: Point) extends Sprite {
+class Line(val start: Point, val end: Point) extends Sprite {
   val deltaX = start.x - end.x
   val deltaY = start.y - end.y
-  val magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-  theta = Math.atan(deltaY/deltaX)
+  val magnitude = sqrt(deltaX * deltaX + deltaY * deltaY)
+  val m = deltaY / deltaX
+
+  val c = start.y - (start.x * m)
+  def y = (x: Double) => m * x + c // mx + c
+  val minX = start.x min end.x
+  val maxX = start.x max end.x
+  val minY = start.y min end.y
+  val maxY = start.y max end.y
+
+  theta = atan(m)
   if (start.x < end.x) {
-    println(theta + " " + (180 deg))
     theta = theta + (180 deg)
   }
-  
+
+  def next = start
+  var location = start
+
   def draw(papplet: PApplet) {
     papplet.line(start.x.toFloat, start.y.toFloat, end.x.toFloat, end.y.toFloat)
   }
 
-  def colliding(sprite: Sprite) {
-    
-    def m = deltaY / deltaX
-    def theta = Math.atan(m)
-    //magnitude = 
-    def c = start.y - (start.x * m)
-    def y = (x: Double) => m * x + c // mx + c
-    val myY = start.y
-    val myX = start.x
-    val spriteYMax = sprite.bounds._1.y max sprite.bounds._2.y
-    val spriteYMin = sprite.bounds._1.y min sprite.bounds._2.y
-    val spriteXMax = sprite.bounds._1.x max sprite.bounds._2.x
-    val spriteXMin = sprite.bounds._1.x min sprite.bounds._2.x
-    //println(spriteYMin + " " + myY + " " + spriteYMax)
-    if ((myY >= spriteYMin && myY <= spriteYMax && y(myX) == myY) || (myX >= spriteXMin && myX <= spriteXMax && y(myX) == myY)) {
-      sprite.theta = (180 deg) - (2 * sprite.theta) + theta
+  def intersects(line: Line) = {
+    if (abs(line.m - m) < 0.001 || abs(line.m - m).isNaN) {
+      None // Parallel lines
+    } else {
+      val (intersectionX, intersectionY) = if (m.isInfinite) {
+        val intersectionX = start.x
+        val intersectionY = line.y(intersectionX)
+        (intersectionX, intersectionY)
+      } else {
+        val intersectionX = (line.c - c) / (m - line.m)
+        val intersectionY = y(intersectionX)
+        (intersectionX, intersectionY)
+      }
+      if (intersectionX >= line.minX && intersectionX <= line.maxX && intersectionY >= line.minY && intersectionY <= line.maxY) {
+        println("intersection")
+        Option(new Point(intersectionX, intersectionY))
+      } else {
+        None
+
+      }
     }
+  }
+  def colliding(sprite: Sprite) {
+    val spriteLine = new Line(sprite.location, sprite.next)
+    intersects(spriteLine) match {
+      case Some(point) =>
+        sprite.move(point)
+        sprite.theta = (360 deg) - (2 * theta) - sprite.theta
+        println(sprite.theta)
+      case None =>
+    }
+    //    val spriteLine = new Line(sprite.location, sprite.next)
+    //    val 
+    //    
+    ////    def theta = atan(m)
+    ////    //magnitude = 
+    ////    def c = start.y - (start.x * m)
+    ////    def y = (x: Double) => m * x + c // mx + c
+    ////    val myY = start.y
+    ////    val myX = start.x
+    ////    val spriteYMax = sprite.bounds._1.y max sprite.bounds._2.y
+    ////    val spriteYMin = sprite.bounds._1.y min sprite.bounds._2.y
+    ////    val spriteXMax = sprite.bounds._1.x max sprite.bounds._2.x
+    ////    val spriteXMin = sprite.bounds._1.x min sprite.bounds._2.x
+    ////    //println(spriteYMin + " " + myY + " " + spriteYMax)
+    ////    if ((myY >= spriteYMin && myY <= spriteYMax && y(myX) == myY) || (myX >= spriteXMin && myX <= spriteXMax && y(myX) == myY)) {
+    ////      sprite.theta = (180 deg) - (2 * sprite.theta) + theta
+    ////    }
   }
 
   def height = 0
@@ -67,7 +121,7 @@ class Line(start: Point, end: Point) extends Sprite {
   def bounds = (start, end)
 }
 
-class Sling(val start: Point, val end: Point) extends Line(start, end) {
+class Sling(start: Point, end: Point) extends Line(start, end) {
   override def draw(papplet: PApplet) {
     papplet.strokeWeight(5)
     papplet.stroke(255)

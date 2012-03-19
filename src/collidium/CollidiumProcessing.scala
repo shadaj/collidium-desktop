@@ -27,11 +27,12 @@ class Collidium extends PApplet {
   var walls = List(new Line(new Point(screenSize -margin, margin), new Point(margin, margin)),
 		  	 	   new Line(new Point(screenSize -margin, screenSize - margin), new Point(margin, screenSize - margin)),
 		   	 	   new Line(new Point(screenSize -margin, margin), new Point(screenSize - margin, screenSize - margin)),
-		  		   new Line(new Point(margin, margin), new Point(margin, screenSize - margin)))
+		  		   new Line(new Point(margin, margin), new Point(margin, screenSize - margin))
+      )
   val circle = new Circle(new Point(1, 1), 10, 10)
   
   override def setup() = {
-    frameRate(75)
+    frameRate(50)
     size(screenSize, screenSize)
   }
 
@@ -43,10 +44,10 @@ class Collidium extends PApplet {
       walls.foreach { wall =>
         wall.colliding(circle)
       }
-      circle.next
+      circle.update
     } else {
-      circle.start.x = mouseX
-      circle.start.y = mouseY
+      circle.location.x = mouseX
+      circle.location.y = mouseY
       slingOption match {
         case Some(sling) => sling.draw(this)
         case None =>
@@ -58,16 +59,16 @@ class Collidium extends PApplet {
   override def mousePressed() {
     if (!started) {
       slingOption = Option(new Sling(new Point(mouseX, mouseY), new Point(mouseX, mouseY)))
-      circle.start.x = mouseX
-      circle.start.y = mouseY
+      circle.location.x = mouseX
+      circle.location.y = mouseY
       pullingRubber = true
     }
   }
   
   override def mouseDragged() {
     if (pullingRubber) {
-        circle.start.x = mouseX
-        circle.start.y = mouseY
+        circle.location.x = mouseX
+        circle.location.y = mouseY
 
     	slingOption = Option(new Sling(slingOption.get.start, new Point(mouseX, mouseY)))
     }
@@ -77,8 +78,8 @@ class Collidium extends PApplet {
     if (pullingRubber) {
 	    circle.theta = slingOption.get.theta
 	    circle.magnitude = slingOption.get.magnitude / 40
-		circle.start.y = mouseY
-		circle.start.x = mouseX
+		circle.location.y = mouseY
+		circle.location.x = mouseX
     }
     pullingRubber = false
     started = true
