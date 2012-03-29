@@ -5,7 +5,7 @@ import Angle._
 import processing.core.PConstants
 import math._
 
-trait Sprite {
+abstract class Sprite {
   def draw(graphics: PApplet): Unit
   def colliding(sprite: Sprite): Unit
   //  def bounds: (Point, Point)
@@ -35,17 +35,26 @@ class Circle(var location: Point, val height: Int, val width: Int) extends Sprit
   //  def bounds: (Point, Point) = {
   //    (location, new Point(location.x + width, location.y + height))
   //  }
-
+  
+  def inBoundsOf(circle: Circle) = {
+    val xshift = (width - circle.width)/2
+    val yshift = (height - circle.height)/2
+    if (circle.location.x >= location.x && circle.location.x <= location.x + xshift && circle.location.y >= location.y && circle.location.y <= location.y + yshift) {
+      true
+    } else false
+  }
+  
   def deltaX = cos(theta) * magnitude
   def deltaY = sin(theta) * magnitude
   var magnitude = 0D
 }
 
 class Line(val start: Point, val end: Point) extends Sprite {
-  val deltaX = start.x - end.x
-  val deltaY = start.y - end.y
+  val deltaX = end.x - start.x
+  val deltaY = end.y - start.y
   val magnitude = sqrt(deltaX * deltaX + deltaY * deltaY)
   val m = deltaY / deltaX
+  
 
   val c = start.y - (start.x * m)
   def y = (x: Double) => m * x + c // mx + c
@@ -55,6 +64,8 @@ class Line(val start: Point, val end: Point) extends Sprite {
   val maxY = start.y max end.y
 
   theta = atan(m)
+  //println(m + "," + theta)
+  
   if (start.x < end.x) {
     theta = theta + (180 deg)
   }
@@ -63,12 +74,22 @@ class Line(val start: Point, val end: Point) extends Sprite {
   var location = start
 
   def draw(papplet: PApplet) {
+    papplet.strokeWeight(10)
     papplet.line(start.x.toFloat, start.y.toFloat, end.x.toFloat, end.y.toFloat)
   }
 
   def intersects(line: Line) = {
+    //println(line.theta)
     if (abs(line.m - m) < 0.001 || abs(line.m - m).isNaN) {
       None // Parallel lines
+    } else if(line.m.isInfinite) {
+      //println(m)
+      val intersectionY = y(line.minX)
+      if (line.maxY > intersectionY && line.minY < intersectionY) {
+        Option(new Point(line.minX, intersectionY))
+      } else {
+        None
+      }
     } else {
       val (intersectionX, intersectionY) = if (m.isInfinite) {
         val intersectionX = start.x
@@ -80,11 +101,9 @@ class Line(val start: Point, val end: Point) extends Sprite {
         (intersectionX, intersectionY)
       }
       if (intersectionX >= line.minX && intersectionX <= line.maxX && intersectionY >= line.minY && intersectionY <= line.maxY) {
-        println("intersection")
         Option(new Point(intersectionX, intersectionY))
       } else {
         None
-
       }
     }
   }
@@ -93,8 +112,7 @@ class Line(val start: Point, val end: Point) extends Sprite {
     intersects(spriteLine) match {
       case Some(point) =>
         sprite.move(point)
-        sprite.theta = (360 deg) - (2 * theta) - sprite.theta
-        println(sprite.theta)
+        sprite.theta = (2 * theta) - sprite.theta 
       case None =>
     }
     //    val spriteLine = new Line(sprite.location, sprite.next)
