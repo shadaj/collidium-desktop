@@ -74,7 +74,7 @@ class Line(val start: Point, val end: Point) extends Sprite {
   var location = start
 
   def draw(papplet: PApplet) {
-    papplet.strokeWeight(10)
+    papplet.strokeWeight(1)
     papplet.line(start.x.toFloat, start.y.toFloat, end.x.toFloat, end.y.toFloat)
   }
 
@@ -100,7 +100,8 @@ class Line(val start: Point, val end: Point) extends Sprite {
         val intersectionY = y(intersectionX)
         (intersectionX, intersectionY)
       }
-      if (intersectionX >= line.minX && intersectionX <= line.maxX && intersectionY >= line.minY && intersectionY <= line.maxY) {
+      if (intersectionX >= line.minX && intersectionX <= line.maxX && intersectionY >= line.minY && intersectionY <= line.maxY
+          && intersectionX >= minX && intersectionX <= maxX && intersectionY >= minY && intersectionY <= maxY) {
         Option(new Point(intersectionX, intersectionY))
       } else {
         None
