@@ -61,7 +61,7 @@ class Collidium extends PApplet {
   var obstacles = List[Sprite]()
   val ball = new Circle(new Point(1, 1), 10, 10)
   val hole = new Circle(new Point(margin + 50, margin + 50), 50, 50)
-  
+  val friction = .001
   var curObstacle: Option[Line] = None
 
   var drawingLine = false
@@ -71,12 +71,12 @@ class Collidium extends PApplet {
     size(screenSize, screenSize)
     stroke(white)
     background(0)
-    
-    
+    ellipseMode(PConstants.CENTER)
+
   }
 
   override def draw() {
-    background(0)
+	background(0)
     walls.foreach(_.draw(this))
     obstacles.foreach(_.draw(this))
     fill(Color.GREEN.getRGB)
@@ -86,12 +86,14 @@ class Collidium extends PApplet {
     stroke(white)
 
     if (started) {
+      ball.magnitude = ball.magnitude - friction
+      if (ball.magnitude <= 0.01) exit
       walls.foreach { wall =>
         wall.colliding(ball)
       }
-      obstacles.foreach {obstacle =>
+      obstacles.foreach { obstacle =>
         obstacle.colliding(ball)
-        }
+      }
       if (hole.inBoundsOf(ball)) {
         //CollidiumApp.backMusic.exit
         println("You Won!")
@@ -121,8 +123,8 @@ class Collidium extends PApplet {
     if (!started) {
       if (key == 'L') {
         curObstacle = Option(new Line(new Point(mouseX, mouseY), new Point(mouseX, mouseY)))
-      } else if (mouseX >= cannonLocation._1 && mouseX <= cannonLocation._1 + 20
-          && mouseY >= cannonLocation._2 && mouseY <= cannonLocation._2 + 20) {
+      } else if (mouseX >= cannonLocation._1 - 10 && mouseX <= cannonLocation._1 + 10
+        && mouseY >= cannonLocation._2 - 10 && mouseY <= cannonLocation._2 + 10) {
         slingOption = Option(new Sling(new Point(mouseX, mouseY), new Point(mouseX, mouseY)))
         ball.location.x = mouseX
         ball.location.y = mouseY
@@ -137,8 +139,8 @@ class Collidium extends PApplet {
       slingOption = Option(new Sling(slingOption.get.start, new Point(mouseX, mouseY)))
       slingOption.get.draw(this)
     } else if (key == 'L' && curObstacle.isDefined) {
-    	curObstacle = Option(new Line(curObstacle.get.start, new Point(mouseX, mouseY)))
-    	curObstacle.get.draw(this)
+      curObstacle = Option(new Line(curObstacle.get.start, new Point(mouseX, mouseY)))
+      curObstacle.get.draw(this)
     }
   }
 
@@ -189,9 +191,5 @@ class Collidium extends PApplet {
       ball.theta = new Line(new Point(ball.location.x + xShift, ball.location.y + yShift), ball.location).theta
     }
   }
-  
+
 }
-
-
-  
-
