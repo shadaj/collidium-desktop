@@ -46,22 +46,22 @@ class MusicPlayer extends Thread {
 }
 
 class Collidium extends PApplet {
-  val cannonLocation = (300,300)
+  val group = 1
+  val levelNum = 1
+  val level = LevelUtil.readFile(new File("levels.txt")).find(l => l.group == group && l.level == levelNum).get
+  val cannonLocation = level.cannonLocation
   val black = 0
   val white = 255
   val screenSize = 500
-  val margin = 50
+  val margin = level.margin
   var started = false
   var pullingRubber = false
   var slingOption: Option[Sling] = None
-  val walls = List(new Line(new Point(margin, margin), new Point(screenSize - margin, margin)),
-    new Line(new Point(screenSize - margin, margin), new Point(screenSize - margin, screenSize - margin)),
-    new Line(new Point(screenSize - margin, screenSize - margin), new Point(margin, screenSize - margin)),
-    new Line(new Point(margin, screenSize - margin), new Point(margin, margin)))
+  val walls = level.walls
   var obstacles = List[Sprite]()
-  val ball = new Circle(new Point(1, 1), 10, 10)
-  val hole = new Circle(new Point(margin + 50, margin + 50), 50, 50)
-  val friction = .001
+  val ball = level.ball
+  val hole = level.hole
+  val friction = level.friction
   var curObstacle: Option[Line] = None
 
   var drawingLine = false
