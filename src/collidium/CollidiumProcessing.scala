@@ -48,7 +48,8 @@ class MusicPlayer extends Thread {
 class Collidium extends PApplet {
   val group = 1
   val levelNum = 1
-  val level = LevelUtil.readFile(new File("levels.txt")).find(l => l.group == group && l.level == levelNum).get
+  val in = new ObjectInputStream(new FileInputStream("level" + levelNum + ".txt")) 
+  val level = in.readObject().asInstanceOf[Level]
   val cannonLocation = level.cannonLocation
   val black = 0
   val white = 255
@@ -162,16 +163,9 @@ class Collidium extends PApplet {
   }
 
   override def keyPressed() {
-    if (key == 'P') {
-      println("pullingRubber")
-      pullingRubber = true
-    }
-    if (key == 'L') {
+    if (key == 'l') {
       println("drawing")
       drawingLine = true
-    } else if (key == 'l') {
-      println("not drawing")
-      drawingLine = false
     } else if (key == 'w') {
       ball.theta = new Line(hole.location, ball.location).theta
     } else {

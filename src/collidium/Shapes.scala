@@ -5,7 +5,7 @@ import Angle._
 import processing.core.PConstants
 import math._
 
-abstract class Sprite {
+abstract class Sprite extends Serializable {
   def draw(graphics: PApplet): Unit
   def colliding(sprite: Sprite): Unit
   var theta: Double = 0
@@ -19,23 +19,24 @@ abstract class Sprite {
   }
 }
 
-class Circle(var location: Point, val height: Int, val width: Int) extends Sprite {
+class Circle(var location: Point, val diameter: Int) extends Sprite {
   def next = {
     new Point((location.x + deltaX), (location.y + deltaY))
   }
 
   def draw(graphics: PApplet): Unit = {
     graphics.ellipseMode(PConstants.CENTER)
-    graphics.ellipse(location.x.toFloat, location.y.toFloat, width, height)
+    graphics.ellipse(location.x.toFloat, location.y.toFloat, diameter, diameter)
   }
   
   def colliding(sprite: Sprite) {
   }
   
   def inBoundsOf(circle: Circle) = {
-    val xshift = (width - circle.width) / 2
-    val yshift = (height - circle.height) / 2
-    if (circle.location.x >= location.x - (width / 2 - 10) && circle.location.x <= location.x + (width / 2 - 10) && circle.location.y >= location.y - (height / 2 - 10) && circle.location.y <= location.y + (height / 2 - 10)) {
+    val xshift = circle.location.x - location.x
+    val yshift = circle.location.y - location.y
+    val deltaDiameter = (diameter - circle.diameter)/2
+    if ((xshift * xshift) + (yshift*yshift) < (deltaDiameter)*(deltaDiameter)) {
       true
     } else false
   }
@@ -123,7 +124,7 @@ class Sling(start: Point, end: Point) extends Line(start, end) {
   }
 }
 
-class Point(var x: Double, var y: Double) {
+class Point(var x: Double, var y: Double) extends Serializable {
   override def toString = {
     "Point(" + x + "," + y + ")"
   }
