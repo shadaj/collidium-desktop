@@ -2,3 +2,6 @@ bin
 lib
 target
 .cache
+.classpath
+.project
+.settings
