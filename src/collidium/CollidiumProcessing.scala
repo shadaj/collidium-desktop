@@ -48,7 +48,7 @@ class MusicPlayer extends Thread {
 class Collidium extends PApplet {
   val group = 1
   val levelNum = 1
-  val in = new ObjectInputStream(new FileInputStream("level" + levelNum + ".txt")) 
+  val in = new ObjectInputStream(new FileInputStream("level" + levelNum + ".collidiumLevel")) 
   val level = in.readObject().asInstanceOf[Level]
   val cannonLocation = level.cannonLocation
   val black = 0

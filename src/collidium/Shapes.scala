@@ -36,7 +36,9 @@ class Circle(var location: Point, val diameter: Int) extends Sprite {
     val xshift = circle.location.x - location.x
     val yshift = circle.location.y - location.y
     val deltaDiameter = (diameter - circle.diameter)/2
-    if ((xshift * xshift) + (yshift*yshift) < (deltaDiameter)*(deltaDiameter)) {
+    if (circle.diameter > diameter) {
+      false
+    } else if ((xshift * xshift) + (yshift*yshift) < (deltaDiameter)*(deltaDiameter)) {
       true
     } else false
   }
@@ -129,3 +131,5 @@ class Point(var x: Double, var y: Double) extends Serializable {
     "Point(" + x + "," + y + ")"
   }
 }
+
+
