@@ -3,7 +3,8 @@ name := "Collidium"
 version := "0.1.0"
 
 libraryDependencies ++= Seq(
-	"org.processing" % "core" % "1.5.1"
+	"com.googlecode.playn" % "playn-core" % "1.2",
+	"com.googlecode.playn" % "playn-java" % "1.2"
 )
 
-resolvers += "Processing repo" at "http://sybila.fi.muni.cz/public/maven"
+resolvers += "Playn project" at "http://forplay.googlecode.com/svn/mavenrepo"

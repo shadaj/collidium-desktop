@@ -1,12 +1,14 @@
 package collidium
 
-import processing.core.PApplet
+import playn.core._
 import Angle._
-import processing.core.PConstants
 import math._
 
-abstract class Sprite extends Serializable {
-  def draw(graphics: PApplet): Unit
+abstract class Sprite(val color: Int) extends Serializable {
+  def draw(graphics: Canvas): Unit = {
+    graphics.setStrokeColor(color)
+    graphics.setFillColor(color)
+  }
   def colliding(sprite: Sprite): Unit
   var theta: Double = 0
   var location: Point
@@ -19,14 +21,14 @@ abstract class Sprite extends Serializable {
   }
 }
 
-class Circle(var location: Point, val diameter: Int) extends Sprite {
+class Circle(var location: Point, val diameter: Int, color: Int) extends Sprite(color) {
   def next = {
     new Point((location.x + deltaX), (location.y + deltaY))
   }
 
-  def draw(graphics: PApplet): Unit = {
-    graphics.ellipseMode(PConstants.CENTER)
-    graphics.ellipse(location.x.toFloat, location.y.toFloat, diameter, diameter)
+  override def draw(graphics: Canvas): Unit = {
+    super.draw(graphics)
+    graphics.fillCircle(location.x.toFloat, location.y.toFloat, diameter/2)
   }
   
   def colliding(sprite: Sprite) {
@@ -48,7 +50,7 @@ class Circle(var location: Point, val diameter: Int) extends Sprite {
   var magnitude = 0D
 }
 
-class Line(val start: Point, val end: Point) extends Sprite {
+class Line(val start: Point, val end: Point, color: Int) extends Sprite(color) {
   val deltaX = end.x - start.x
   val deltaY = end.y - start.y
   val magnitude = sqrt(deltaX * deltaX + deltaY * deltaY)
@@ -70,9 +72,9 @@ class Line(val start: Point, val end: Point) extends Sprite {
   def next = start
   var location = start
 
-  def draw(papplet: PApplet) {
-    papplet.strokeWeight(1)
-    papplet.line(start.x.toFloat, start.y.toFloat, end.x.toFloat, end.y.toFloat)
+  override def draw(graphics: Canvas) {
+    super.draw(graphics)
+    graphics.drawLine(start.x.toFloat, start.y.toFloat, end.x.toFloat, end.y.toFloat)
   }
 
   def intersects(line: Line) = {
@@ -104,7 +106,7 @@ class Line(val start: Point, val end: Point) extends Sprite {
     }
   }
   def colliding(sprite: Sprite) {
-    val spriteLine = new Line(sprite.location, sprite.next)
+    val spriteLine = new Line(sprite.location, sprite.next, sprite.color)
     intersects(spriteLine) match {
       case Some(point) =>
         sprite.move(point)
@@ -118,13 +120,7 @@ class Line(val start: Point, val end: Point) extends Sprite {
   def bounds = (start, end)
 }
 
-class Sling(start: Point, end: Point) extends Line(start, end) {
-  override def draw(papplet: PApplet) {
-    papplet.strokeWeight(5)
-    papplet.stroke(255)
-    super.draw(papplet)
-  }
-}
+class Sling(start: Point, end: Point, color: Int) extends Line(start, end, color)
 
 class Point(var x: Double, var y: Double) extends Serializable {
   override def toString = {
